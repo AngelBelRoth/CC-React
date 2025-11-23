@@ -1,11 +1,14 @@
 import Nav from '../components/Nav'
 import axios from 'axios'
-import { useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useCookies } from 'react-cookie'
 import { useNavigate } from 'react-router-dom'
 
 const Onboarding = () => {
-    const [cookies, setCookie, removeCookie] = useCookies(['user'])
+    const [cookies] = useCookies(['user'])
+    const userId = cookies.UserId
+    const fileInputRef = useRef(null);
+
     const [formData, setFormData] = useState({
         user_id: cookies.UserId,
         company_name: '',
@@ -20,6 +23,27 @@ const Onboarding = () => {
         about: '',
         matches: []
     })
+
+    const getUser = async () => {
+        if (userId) {
+            try {
+                const response = await axios.get('http://localhost:8080/user', {
+                    params: { userId }
+                })
+                // setUser(response.data)
+                setFormData((prev) => ({
+                    ...prev,
+                    ...response.data
+                }))
+            } catch (err) {
+                console.log(err)
+            }
+        }
+    }
+
+    useEffect(() => {
+        getUser()
+    }, [])
 
     let navigate = useNavigate()
 
@@ -44,6 +68,42 @@ const Onboarding = () => {
             [name]: value
         }))
     }
+
+    const handleInputClick = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click(); // Open file dialog
+        }
+    };
+
+    // Upload the image to backend
+    const handleUpload = async (file) => {
+        const data = new FormData();
+        data.append("image", file);
+
+        try {
+            const res = await axios.post("http://localhost:8080/upload", data, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            const url = res.data.url;
+
+            // Update input and formData
+            setFormData((prev) => ({
+                ...prev,
+                url: url
+            }));
+        } catch (err) {
+            console.error("Upload failed:", err);
+        }
+    };
+
+    // When file is selected
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            handleUpload(file); // Upload immediately
+        }
+    };
 
     console.log(formData)
 
@@ -179,14 +239,27 @@ const Onboarding = () => {
                     <section>
                         <label htmlFor="about">Brand Logo</label>
                         <input
-                            type="url"
-                            name="url"
-                            id="url"
-                            // required={true}
-                            onChange={handleChange}
+                            type="text"
+                            placeholder="Click to upload image"
+                            readOnly
+                            onClick={handleInputClick}
+                            value={formData.url || ""}
                         />
-                        <div className="photo-container">
-                            {formData.url && <img src={formData.url} alt="Logo Brand Preview" />}
+
+                        {/* Hidden file input */}
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            style={{ display: "none" }}
+                            accept="image/*"
+                            onChange={handleFileChange}
+                        />
+
+                        {/* Image preview */}
+                        <div className="photo-container" style={{ marginTop: 10 }}>
+                            {formData.url && (
+                                <img src={formData.url} alt="Uploaded Preview" width="200" />
+                            )}
                         </div>
                     </section>
                 </form>

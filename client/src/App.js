@@ -1,8 +1,9 @@
 import Home from './pages/Home'
 import Dashboard from './pages/Dashboard'
 import Onboarding from './pages/Onboarding'
+import ForgotPassword from './pages/ForgotPassword'
 import { useCookies } from 'react-cookie'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 const App = () => {
   const [cookies, setCookie, removeCookie] = useCookies(['user'])
@@ -12,8 +13,15 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-        {authToken && <Route path="/dashboard" element={<Dashboard />} />}
-        {authToken && <Route path="/onboarding" element={<Onboarding />} />}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route
+          path="/dashboard"
+          element={authToken ? <Dashboard /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/onboarding"
+          element={authToken ? <Onboarding /> : <Navigate to="/" />}
+        />
       </Routes>
     </BrowserRouter>
   )
