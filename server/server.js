@@ -134,6 +134,8 @@ app.put('/addmatch', async (req, res) => {
     const client = new MongoClient(uri)
     const { userId, matchedUserId } = req.body
 
+    console.log(userId, matchedUserId);
+
     try {
         await client.connect()
         const database = client.db('Match')
@@ -275,9 +277,10 @@ app.get('/messages', async (req, res) => {
     const { userId, correspondingUserId } = req.query
     const client = new MongoClient(uri)
 
+    console.log(userId, correspondingUserId);
     try {
         await client.connect()
-        const database = client.db('Match')
+        const database = client.db('app-data')
         const messages = database.collection('messages')
 
         const query = {
@@ -293,8 +296,10 @@ app.get('/messages', async (req, res) => {
 
 // Add a Message to our Database
 app.post('/message', async (req, res) => {
+
     const client = new MongoClient(uri)
     const message = req.body.message
+    console.log(message);
 
     try {
         await client.connect()
