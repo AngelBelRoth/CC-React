@@ -6,8 +6,6 @@ import { useState } from 'react'
 const ChatContainer = ({ user }) => {
     const [ clickedUser, setClickedUser ] = useState(null)
 
-    console.log('clickUser', clickedUser)
-
     return (
         <div className="chat-container">
             <ChatHeader user={user}/>

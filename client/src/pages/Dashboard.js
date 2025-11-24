@@ -1,120 +1,102 @@
 import axios from 'axios'
-import SwipeCard from '../components/SwipeCard'
 import ChatContainer from '../components/ChatContainer'
+import SwipeableCard from '../components/SwipeCard'
 import { useCookies } from 'react-cookie'
 import { useEffect, useState } from 'react'
+import "../Dashboard.css"
 
 const Dashboard = () => {
 
     const [user, setUser] = useState(null)
-    const [lastDirection, setLastDirection] = useState()
     const [businessType, setBusinessType] = useState([])
+    const [cards, setCards] = useState([])
 
     const [cookies] = useCookies(['UserId'])
     const userId = cookies.UserId
 
     const getUser = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/user', {
+            const res = await axios.get("http://localhost:8080/user", {
                 params: { userId }
-            })
-            console.log(response.data)
-            setUser(response.data)
+            });
+            setUser(res.data);
         } catch (err) {
-            console.log(err)
+            console.log(err);
         }
-    }
+    };
 
     const getBusinessType = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/business-type', {
+            const res = await axios.get("http://localhost:8080/business-type", {
                 params: { business: user?.business_interest }
-            })
-            console.log(response.data)
-            setBusinessType(response.data)
+            });
+            setBusinessType(res.data);
         } catch (err) {
-            console.log(err)
+            console.log(err);
         }
-    }
+    };
 
-    // Load user on mount
     useEffect(() => {
-        getUser()
-    }, [])
+        getUser();
+    }, []);
 
-    // Load business type when user finished loading
     useEffect(() => {
-        if (user && user.business_interest) {
-            getBusinessType()
+        if (user?.business_interest) {
+            getBusinessType();
         }
-    }, [user])
+    }, [user]);
+
+    useEffect(() => {
+        if (!user) return;
+
+        const matched = user.matches?.map(m => m.user_id) || [];
+        const filtered = businessType.filter(b => !matched.includes(b.user_id) && b.user_id !== userId);
+
+        setCards(filtered);
+    }, [businessType, user]);
 
     const updateMatches = async (matchedUserId) => {
         try {
-            await axios.put('http://localhost:8080/addmatch', {
+            await axios.put("http://localhost:8080/addmatch", {
                 userId,
                 matchedUserId
-            })
-            getUser()
+            });
+            getUser();
         } catch (err) {
-            console.log(err)
+            console.log(err);
         }
-    }
+    };
 
-    const swiped = (direction, swipedUserId) => {
-        if (direction === 'right') {
-            updateMatches(swipedUserId)
+    const handleSwipe = (dir, swipedUserId) => {
+        if (dir === "right") {
+            updateMatches(swipedUserId);
         }
-        setLastDirection(direction)
-    }
 
-    const outOfFrame = (name) => {
-        console.log(name + ' left the screen!')
-    }
-
-    const matchedUserIds = user?.matches
-        ?.map(({ user_id }) => user_id)
-        .concat(userId) || []
-
-    const filteredBusinessType = businessType.filter(
-        b => !matchedUserIds.includes(b.user_id)
-    )
+        setCards(prev => prev.filter(c => c.user_id !== swipedUserId));
+    };
 
     return (
-        <>
-            {user &&
-                <div className="dashboard">
-                    <ChatContainer user={user} />
-                    <div className="swipe-container">
+        user && (
+            <div className="dashboard">
+                <ChatContainer user={user} />
 
-                        {filteredBusinessType.length > 0 ? (
-                            filteredBusinessType.map(b => (
-                                <SwipeCard
-                                    key={b.user_id}
-                                    onSwipe={(dir) => swiped(dir, b.user_id)}
-                                    onCardLeftScreen={() => outOfFrame(b.company_name)}
-                                >
-                                    <div
-                                        style={{ backgroundImage: `url(${b.url})` }}
-                                        className="card"
-                                    >
-                                        <h3>{b.company_name}</h3>
-                                    </div>
-                                </SwipeCard>
-                            ))
-                        ) : (
-                            <p>No businesses to show</p>
-                        )}
-
-                        <div className='swipe-info'>
-                            {lastDirection ? <p>You swiped {lastDirection}</p> : <p />}
-                        </div>
-
+                <div className="swipe-container">
+                    <div className="card-stack">
+                        {cards.map((b, index) => (
+                            <SwipeableCard
+                                key={b.user_id}
+                                data={b}
+                                index={index}
+                                onSwipe={handleSwipe}
+                            />
+                        ))}
                     </div>
-                </div>
-            }
-        </>
-    )
-}
 
-export default Dashboard
+                    {cards.length === 0 && <p>No more cards</p>}
+                </div>
+            </div>
+        )
+    );
+};
+
+export default Dashboard;

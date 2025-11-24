@@ -1,42 +1,64 @@
-import { useState } from "react";
 import { useSwipeable } from "react-swipeable";
+import { useState } from "react";
 
-const SwipeCard = ({ children, onSwipe, onCardLeftScreen }) => {
-  const [swipedOut, setSwipedOut] = useState(false);
-  const [direction, setDirection] = useState("");
+const SwipeableCard = ({ data, onSwipe, index }) => {
+    const [pos, setPos] = useState({ x: 0, y: 0, rot: 0, released: false });
 
-  const handlers = useSwipeable({
-    onSwipedLeft: () => handleSwipe("left"),
-    onSwipedRight: () => handleSwipe("right"),
-    trackMouse: true // allows mouse dragging
-  });
+    const handlers = useSwipeable({
+        onSwiping: ({ deltaX, deltaY }) => {
+            setPos({
+                x: deltaX,
+                y: deltaY,
+                rot: deltaX / 10,
+                released: false
+            });
+        },
+        onSwiped: ({ deltaX }) => {
+            const threshold = 140;
 
-  const handleSwipe = (dir) => {
-    setDirection(dir);
-    setSwipedOut(true);
-    onSwipe(dir);
-    setTimeout(() => {
-      onCardLeftScreen?.();
-    }, 300);
-  };
+            if (deltaX > threshold) {
+                // Right swipe
+                setPos({
+                    x: 500,
+                    y: 0,
+                    rot: 20,
+                    released: true
+                });
+                setTimeout(() => onSwipe("right", data.user_id), 200);
+            } else if (deltaX < -threshold) {
+                // Left swipe
+                setPos({
+                    x: -500,
+                    y: 0,
+                    rot: -20,
+                    released: true
+                });
+                setTimeout(() => onSwipe("left", data.user_id), 200);
+            } else {
+                // Snap back
+                setPos({ x: 0, y: 0, rot: 0, released: false });
+            }
+        },
+        trackMouse: true
+    });
 
-  return (
-    <div
-      {...handlers}
-      className="swipe-card"
-      style={{
-        transition: "transform 0.3s ease-out",
-        transform:
-          swipedOut
-            ? direction === "right"
-              ? "translateX(200%) rotate(20deg)"
-              : "translateX(-200%) rotate(-20deg)"
-            : "none"
-      }}
-    >
-      {children}
-    </div>
-  );
+    const style = {
+        transform: `translate(${pos.x}px, ${pos.y}px) rotate(${pos.rot}deg)`,
+        transition: pos.released ? "all 0.3s ease-out" : "none",
+        zIndex: 100 - index,
+        position: "absolute"
+    };
+
+    return (
+        <div {...handlers} style={style} className="swipe-card">
+            <div
+                className="card"
+                style={{ backgroundImage: `url(${data.url})` }}
+            >
+                <h3>{data.company_name}</h3>
+            </div>
+        </div>
+    );
 };
 
-export default SwipeCard;
+export default SwipeableCard;
