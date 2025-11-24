@@ -1,16 +1,16 @@
 import axios from 'axios'
-import TinderCard from 'react-tinder-card'
+import SwipeCard from '../components/SwipeCard'
 import ChatContainer from '../components/ChatContainer'
 import { useCookies } from 'react-cookie'
-import { useEffect, useLayoutEffect, useState } from 'react'
-
+import { useEffect, useState } from 'react'
 
 const Dashboard = () => {
 
     const [user, setUser] = useState(null)
     const [lastDirection, setLastDirection] = useState()
-    const [businessType, setBusinessType] = useState(null)
-    const [cookies] = useCookies(['user'])
+    const [businessType, setBusinessType] = useState([])
+
+    const [cookies] = useCookies(['UserId'])
     const userId = cookies.UserId
 
     const getUser = async () => {
@@ -25,35 +25,29 @@ const Dashboard = () => {
         }
     }
 
-
     const getBusinessType = async () => {
         try {
             const response = await axios.get('http://localhost:8080/business-type', {
                 params: { business: user?.business_interest }
             })
+            console.log(response.data)
             setBusinessType(response.data)
         } catch (err) {
             console.log(err)
         }
     }
 
+    // Load user on mount
     useEffect(() => {
         getUser()
-
     }, [])
 
-    useLayoutEffect(() => {
-
-        if (user && user.business_type) {
+    // Load business type when user finished loading
+    useEffect(() => {
+        if (user && user.business_interest) {
             getBusinessType()
-            console.log('🌕', user.business_type)
         }
-
-    }, [])
-    console.log('user', user)
-    console.log('businessType', businessType)
-
-
+    }, [user])
 
     const updateMatches = async (matchedUserId) => {
         try {
@@ -66,14 +60,11 @@ const Dashboard = () => {
             console.log(err)
         }
     }
-    console.log(user)
 
     const swiped = (direction, swipedUserId) => {
-
         if (direction === 'right') {
             updateMatches(swipedUserId)
         }
-
         setLastDirection(direction)
     }
 
@@ -81,12 +72,13 @@ const Dashboard = () => {
         console.log(name + ' left the screen!')
     }
 
-    const matchedUserIds = user?.matches.map(({ user_id }) => user_id).concat(userId)
+    const matchedUserIds = user?.matches
+        ?.map(({ user_id }) => user_id)
+        .concat(userId) || []
 
-    const filteredBusinessType = businessType?.filter(businessType => !matchedUserIds.includes(businessType.user_id))
-
-
-    console.log('filteredBusinessType ', filteredBusinessType)
+    const filteredBusinessType = businessType.filter(
+        b => !matchedUserIds.includes(b.user_id)
+    )
 
     return (
         <>
@@ -94,24 +86,33 @@ const Dashboard = () => {
                 <div className="dashboard">
                     <ChatContainer user={user} />
                     <div className="swipe-container">
-                        <div className="card-container"></div>
 
-                        {filteredBusinessType?.map((businessType) =>
-                            <TinderCard
-                                className='swipe' key={businessType.user_id}
-                                onSwipe={(dir) => swiped(dir, businessType.user_id)}
-                                onCardLeftScreen={() => outOfFrame(businessType.company_name)}>
-                                <div style={{ backgroundImage: 'url(' + businessType.url + ')' }}
-                                    className='card'>
-                                    <h3>{businessType.company_name}</h3>
-                                </div>
-                            </TinderCard>
+                        {filteredBusinessType.length > 0 ? (
+                            filteredBusinessType.map(b => (
+                                <SwipeCard
+                                    key={b.user_id}
+                                    onSwipe={(dir) => swiped(dir, b.user_id)}
+                                    onCardLeftScreen={() => outOfFrame(b.company_name)}
+                                >
+                                    <div
+                                        style={{ backgroundImage: `url(${b.url})` }}
+                                        className="card"
+                                    >
+                                        <h3>{b.company_name}</h3>
+                                    </div>
+                                </SwipeCard>
+                            ))
+                        ) : (
+                            <p>No businesses to show</p>
                         )}
+
                         <div className='swipe-info'>
                             {lastDirection ? <p>You swiped {lastDirection}</p> : <p />}
                         </div>
+
                     </div>
-                </div>}
+                </div>
+            }
         </>
     )
 }

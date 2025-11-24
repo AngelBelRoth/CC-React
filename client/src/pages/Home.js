@@ -1,28 +1,40 @@
 import Nav from '../components/Nav'
 import AuthModal from '../components/AuthModal'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useCookies } from 'react-cookie'
+import { useNavigate } from 'react-router-dom';
+
 
 const Home = () => {
     const [showModal, setShowModal] = useState(false)
     const [isSignUp, setIsSignUp] = useState(true)
-    const [cookies, removeCookie] = useCookies(['UserId', 'AuthToken'])
+    const [cookies, setCookie, removeCookie] = useCookies(['UserId', 'AuthToken'])
+
 
     const authToken = cookies.AuthToken
 
+    const navigate = useNavigate()
+
     const handleClick = () => {
         if (authToken) {
-            removeCookie('UserId', cookies.UserId)
-            removeCookie('AuthToken', cookies.AuthToken)
-            window.location.reload()
+            removeCookie('UserId', { path: '/' })
+            removeCookie('AuthToken', { path: '/' })
+            navigate('/')
             return
         }
 
         setShowModal(true)
         setIsSignUp(true)
-
-
     }
+
+    // useEffect(() => {
+    //     if (authToken) {
+    //         removeCookie('UserId', { path: '/' })
+    //         removeCookie('AuthToken', { path: '/' })
+    //         navigate('/')
+    //         return
+    //     }
+    // }, [])
 
     return (
         <div className="overlay">
