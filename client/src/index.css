@@ -312,7 +312,7 @@ nav .logo-container .logo {
 
 .chat-container .log-out-icon {
     font-style: normal;
-    /* transform: scaleX(-1); */
+    transform: scaleX(-1);
     /* display: inline-block; */
 }
 

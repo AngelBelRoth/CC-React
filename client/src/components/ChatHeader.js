@@ -24,7 +24,8 @@ const ChatHeader = ({ user }) => {
                 </div>
                 <h3>{user.company_name}</h3>
             </div>
-            <img className="log-out-icon" alt="" src={back_button} onClick={logout} />
+            {/* <img className="log-out-icon" alt="" src={back_button} onClick={logout} /> */}
+            <i className="log-out-icon" onClick={logout}>➜</i>
         </div>
     )
 }

@@ -61,18 +61,30 @@ const Dashboard = () => {
                 userId,
                 matchedUserId
             });
-            getUser();
+            // getUser();
         } catch (err) {
             console.log(err);
         }
     };
 
     const handleSwipe = (dir, swipedUserId) => {
-        if (dir === "right") {
-            updateMatches(swipedUserId);
-        }
+        setCards(prev => {
 
-        setCards(prev => prev.filter(c => c.user_id !== swipedUserId));
+
+            if (dir === "right") {
+                updateMatches(swipedUserId);
+                return prev.filter(c => c.user_id !== swipedUserId); // remove permanently
+            }
+
+            if (dir === "left") {
+                const card = prev.find(c => c.user_id === swipedUserId);
+                const rest = prev.filter(c => c.user_id !== swipedUserId);
+                // move left-swiped card to the end
+                return [...rest, card];
+            }
+
+            return prev;
+        });
     };
 
     return (

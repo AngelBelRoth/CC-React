@@ -33,9 +33,11 @@ const SwipeableCard = ({ data, onSwipe, index }) => {
                     rot: -20,
                     released: true
                 });
-                setTimeout(() => onSwipe("left", data.user_id), 200);
+                setTimeout(() => {
+                    onSwipe("left", data.user_id);
+                    setPos({ x: 0, y: 0, rot: 0, released: false });
+                }, 200);
             } else {
-                // Snap back
                 setPos({ x: 0, y: 0, rot: 0, released: false });
             }
         },
