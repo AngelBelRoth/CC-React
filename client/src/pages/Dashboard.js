@@ -8,6 +8,7 @@ import "../Dashboard.css"
 const Dashboard = () => {
 
     const [user, setUser] = useState(null)
+    const [chatUser, setChatUser] = useState(null)
     const [businessType, setBusinessType] = useState([])
     const [cards, setCards] = useState([])
 
@@ -20,6 +21,17 @@ const Dashboard = () => {
                 params: { userId }
             });
             setUser(res.data);
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+    const getChatUser = async () => {
+        try {
+            const res = await axios.get("http://localhost:8080/user", {
+                params: { userId }
+            });
+            setChatUser(res.data);
         } catch (err) {
             console.log(err);
         }
@@ -38,6 +50,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         getUser();
+        getChatUser();
     }, []);
 
     useEffect(() => {
@@ -61,7 +74,7 @@ const Dashboard = () => {
                 userId,
                 matchedUserId
             });
-            // getUser();
+            getChatUser();
         } catch (err) {
             console.log(err);
         }
@@ -69,28 +82,24 @@ const Dashboard = () => {
 
     const handleSwipe = (dir, swipedUserId) => {
         setCards(prev => {
-
-
             if (dir === "right") {
                 updateMatches(swipedUserId);
-                return prev.filter(c => c.user_id !== swipedUserId); // remove permanently
+                return prev.filter(c => c.user_id !== swipedUserId);
             }
 
             if (dir === "left") {
                 const card = prev.find(c => c.user_id === swipedUserId);
                 const rest = prev.filter(c => c.user_id !== swipedUserId);
-                // move left-swiped card to the end
                 return [...rest, card];
             }
 
             return prev;
         });
     };
-
     return (
-        user && (
+        chatUser && (
             <div className="dashboard">
-                <ChatContainer user={user} />
+                <ChatContainer user={chatUser} />
 
                 <div className="swipe-container">
                     <div className="card-stack">

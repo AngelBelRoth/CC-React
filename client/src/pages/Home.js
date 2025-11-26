@@ -27,15 +27,6 @@ const Home = () => {
         setIsSignUp(true)
     }
 
-    // useEffect(() => {
-    //     if (authToken) {
-    //         removeCookie('UserId', { path: '/' })
-    //         removeCookie('AuthToken', { path: '/' })
-    //         navigate('/')
-    //         return
-    //     }
-    // }, [])
-
     return (
         <div className="overlay">
             <Nav minimal={false}
@@ -44,7 +35,7 @@ const Home = () => {
                 showModal={showModal}
                 setIsSignUp={setIsSignUp} />
             <div className="home">
-                <h1 className="primary-title">Community Connect ®</h1>
+                <h1 className="primary-title">Community Connect ®</h1>                
                 <button className="primary-button" onClick={handleClick}>
                     {authToken ? 'Signout' : 'Create Account'}
                 </button>
