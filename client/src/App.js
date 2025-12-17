@@ -3,6 +3,7 @@ import Dashboard from './pages/Dashboard'
 import Onboarding from './pages/Onboarding'
 import { useCookies } from 'react-cookie'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import AdminPage from './pages/AdminPage'
 
 const App = () => {
   const [cookies, setCookie, removeCookie] = useCookies(['user'])
@@ -12,6 +13,7 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/adminpage" element={<AdminPage />} />
         <Route
           path="/dashboard"
           element={authToken ? <Dashboard /> : <Navigate to="/" />}

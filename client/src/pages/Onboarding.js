@@ -30,7 +30,6 @@ const Onboarding = () => {
                 const response = await axios.get('http://localhost:8080/user', {
                     params: { userId }
                 })
-                // setUser(response.data)
                 setFormData((prev) => ({
                     ...prev,
                     ...response.data
@@ -52,7 +51,7 @@ const Onboarding = () => {
         try {
             const response = await axios.put('http://localhost:8080/users', { formData })
             const success = response.status === 200
-            if (success) navigate('/dashboard')
+            if (success) navigate('/')
         } catch (err) {
             console.log(err)
         }

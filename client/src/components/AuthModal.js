@@ -53,7 +53,14 @@ const AuthModal = ({ setShowModal, isSignUp }) => {
 
             const success = response.status === 201
             if (success && isSignUp) navigate('/onboarding')
+
             if (success && !isSignUp) navigate('/dashboard')
+
+            if (response.status === 200) {
+                console.log("User not approved yet.");
+                window.alert("User not approved yet.")
+                return;
+            }
 
             window.location.reload()
 

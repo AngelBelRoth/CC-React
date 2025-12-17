@@ -31,8 +31,8 @@ app.use(bodyParser.json());
 
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 465,      
-    secure: true,   
+    port: 465,
+    secure: true,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
@@ -65,7 +65,8 @@ app.post('/signup', async (req, res) => {
         const data = {
             user_id: generateUserId,
             email: sanitizedEmail,
-            hashed_password: hashedPassword
+            hashed_password: hashedPassword,
+            status: "approved"
         }
         const insertedUser = await users.insertOne(data)
 
@@ -95,10 +96,16 @@ app.post('/login', async (req, res) => {
         const correctPassword = await bcrypt.compare(password, user.hashed_password)
 
         if (user && correctPassword) {
-            const token = jwt.sign(user, email, {
-                expiresIn: 60 * 24
-            })
-            res.status(201).json({ token, userId: user.user_id })
+            if (user.status !== "approved") {
+                console.log('User not approved yet');
+                res.status(200).json('User not approved yet')
+            }
+            else {
+                const token = jwt.sign(user, email, {
+                    expiresIn: 60 * 24
+                })
+                res.status(201).json({ token, userId: user.user_id })
+            }
         } else {
             res.status(400).json('Invalid Credentials')
         }
@@ -147,6 +154,30 @@ app.put('/addmatch', async (req, res) => {
         }
         const user = await users.updateOne(query, updateDocument)
         res.send(user)
+    } finally {
+        await client.close()
+    }
+})
+
+app.put('/updateUserStatus', async (req, res) => {
+    const client = new MongoClient(uri)
+    const { userId, status } = req.body.params
+
+    console.log(userId, status);
+
+    try {
+        await client.connect()
+        const database = client.db('Match')
+        const users = database.collection('users')
+
+        const query = { user_id: userId }
+        const updateDocument = {
+            $set: { status: status }
+        }
+        const user = await users.updateOne(query, updateDocument)
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false });
     } finally {
         await client.close()
     }
